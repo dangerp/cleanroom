@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Cleanroom by sethvargo</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Cleanroom</h1>
+        <p class="header">(More) safely evaluate Ruby DSLs with cleanroom</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/sethvargo/cleanroom/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/sethvargo/cleanroom/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/sethvargo/cleanroom">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/sethvargo">sethvargo</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="ruby-cleanroom" class="anchor" href="#ruby-cleanroom"><span class="octicon octicon-link"></span></a>Ruby Cleanroom</h1>
+
+<p><a href="https://rubygems.org/gems/cleanroom"><img src="http://img.shields.io/gem/v/cleanroom.svg" alt="Gem Version"></a>
+<a href="http://travis-ci.org/sethvargo/cleanroom"><img src="http://img.shields.io/travis/sethvargo/cleanroom.svg" alt="Build Status"></a>
+<a href="https://codeclimate.com/github/sethvargo/cleanroom"><img src="http://img.shields.io/codeclimate/github/sethvargo/cleanroom.svg" alt="Code Climate"></a>
+<a href="https://www.gittip.com/sethvargo"><img src="http://img.shields.io/gittip/sethvargo.svg" alt="Gittip"></a></p>
+
+<p>Ruby is an excellent programming language for creating and managing custom DSLs, but how can you securely evaluate a DSL while explicitly controlling the methods exposed to the user? Our good friends <code>instance_eval</code> and <code>instance_exec</code> are great, but they expose all methods - public, protected, and private - to the user. Even worse, they expose the ability to accidentally or intentionally alter the behavior of the system! The cleanroom pattern is a safer, more convenient, Ruby-like approach for limiting the information exposed by a DSL while giving users the ability to write awesome code!</p>
+
+<p>The cleanroom pattern is a unique way for more safely evaluating Ruby DSLs without adding additional overhead.</p>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Add this line to your application's Gemfile:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="n">gem</span> <span class="s1">'cleanroom'</span>
+</pre></div>
+
+<p>And then execute:</p>
+
+<pre><code>$ bundle
+</code></pre>
+
+<p>Or install it yourself as:</p>
+
+<pre><code>$ gem install cleanroom
+</code></pre>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<h3>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h3>
+
+<p>In order to use the cleanroom, you must first load the cleanroom gem:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="nb">require</span> <span class="s1">'cleanroom'</span>
+</pre></div>
+
+<p>Next, for any file you wish to be evaluated as a DSL, include the module:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="k">class</span> <span class="nc">MyDSL</span>
+  <span class="kp">include</span> <span class="no">Cleanroom</span>
+<span class="k">end</span>
+</pre></div>
+
+<h3>
+<a name="writing-dsls" class="anchor" href="#writing-dsls"><span class="octicon octicon-link"></span></a>Writing DSLs</h3>
+
+<p>For each public method you with to expose as a DSL method, call <code>expose</code> after the method definition in your class:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="k">class</span> <span class="nc">MyDSL</span>
+  <span class="kp">include</span> <span class="no">Cleanroom</span>
+
+  <span class="k">def</span> <span class="nf">my_method</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+  <span class="n">expose</span> <span class="ss">:my_method</span>
+
+  <span class="k">def</span> <span class="nf">public_method</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">private_method</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>In this example, <code>MyDSL</code> exposes two public API methods:</p>
+
+<ul>
+<li><code>my_method</code></li>
+<li><code>public_method</code></li>
+</ul><p>which would be accessible via:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="n">instance</span> <span class="o">=</span> <span class="no">MyDSL</span><span class="o">.</span><span class="n">new</span>
+<span class="n">instance</span><span class="o">.</span><span class="n">my_method</span>
+<span class="n">instance</span><span class="o">.</span><span class="n">public_method</span>
+</pre></div>
+
+<p>MyDSL also exposes one DSL method:</p>
+
+<ul>
+<li><code>my_method</code></li>
+</ul><p>which would be accessible in a DSL file:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="n">my_method</span>
+</pre></div>
+
+<p>The use of the <code>expose</code> method has the added advantage of clearly identifying which methods are available as part of the DSL.</p>
+
+<p>The method <code>private_method</code> is never accessible in the DSL or as part of the public API.</p>
+
+<h3>
+<a name="evaluating-dsls" class="anchor" href="#evaluating-dsls"><span class="octicon octicon-link"></span></a>Evaluating DSLs</h3>
+
+<p>The cleanroom also includes the ability to more safely evaluate DSL files. Given an instance of a class, you can call <code>evaluate</code> or <code>evaluate_file</code> to read a DSL.</p>
+
+<div class="highlight highlight-ruby"><pre><span class="n">instance</span> <span class="o">=</span> <span class="no">MyDSL</span><span class="o">.</span><span class="n">new</span>
+
+<span class="c1"># Using a Ruby block</span>
+<span class="n">instance</span><span class="o">.</span><span class="n">evaluate</span> <span class="k">do</span>
+  <span class="n">my_method</span>
+<span class="k">end</span>
+
+<span class="c1"># Using a String</span>
+<span class="n">instance</span><span class="o">.</span><span class="n">evaluate</span> <span class="s2">"my_method"</span>
+
+<span class="c1"># Given a file at /file</span>
+<span class="n">instance</span><span class="o">.</span><span class="n">evaluate_file</span><span class="p">(</span><span class="s1">'/file'</span><span class="p">)</span>
+</pre></div>
+
+<p>These same methods are available on the class as well, but require you pass in the instance:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="n">instance</span> <span class="o">=</span> <span class="no">MyDSL</span><span class="o">.</span><span class="n">new</span>
+
+<span class="c1"># Using a Ruby block</span>
+<span class="no">MyDSL</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">my_method</span>
+<span class="k">end</span>
+
+<span class="c1"># Using a String</span>
+<span class="no">MyDSL</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span> <span class="s2">"my_method"</span>
+
+<span class="c1"># Given a file at /file</span>
+<span class="no">MyDSL</span><span class="o">.</span><span class="n">evaluate_file</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'/file'</span><span class="p">)</span>
+</pre></div>
+
+<p>For both of these examples, <em>the given instance is modified</em>, meaning <code>instance</code> holds the values after the evaluation took place.</p>
+
+<h2>
+<a name="security" class="anchor" href="#security"><span class="octicon octicon-link"></span></a>"Security"</h2>
+
+<p>The cleanroom gem tries to prevent unauthorized variable access and attempts to alter the behavior of the system.</p>
+
+<p>First, the underlying instance object is never stored in an instance variable. Due to the nature of <code>instance_eval</code>, it would be trivial for a malicious user to directly access methods on the delegate class.</p>
+
+<div class="highlight highlight-ruby"><pre><span class="c1"># Some DSL file</span>
+<span class="vi">@instance</span> <span class="c1">#=&gt; nil</span>
+</pre></div>
+
+<p>Second, access to the underlying <code>instance</code> in the cleanroom is restricted to <code>self</code> by inspecting the <code>caller</code> attempts to access <code>__instance__</code> from outside of a method in the cleanroom will result in an error.</p>
+
+<div class="highlight highlight-ruby"><pre><span class="c1"># Some DSL file</span>
+<span class="n">__instance__</span> <span class="c1">#=&gt; Cleanroom::InaccessibleError</span>
+<span class="nb">send</span><span class="p">(</span><span class="ss">:__instance__</span><span class="p">)</span> <span class="c1">#=&gt; Cleanroom::InaccessibleError</span>
+</pre></div>
+
+<p>Third, the ability to create new methods on the cleanroom is also disabled:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="c1"># Some DSL file</span>
+<span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">class_eval</span> <span class="p">{</span> <span class="p">}</span> <span class="c1">#=&gt; Cleanroom::InaccessibleError</span>
+<span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">instance_eval</span> <span class="p">{</span> <span class="p">}</span> <span class="c1">#=&gt; Cleanroom::InaccessibleError</span>
+</pre></div>
+
+<p>Fourth, when delegating to the underlying instance object, <code>public_send</code> (as opposed to <code>send</code> or <code>__send__</code>) is used. Even if an attacker could somehow bypass the previous safeguards, they would be unable to call non-public methods on the delegate object.</p>
+
+<p>If you find a security hole in the cleanroom implementation, please email me at the contact info found in my <a href="https://github.com/sethvargo">GitHub profile</a>. <strong>Do not open an issue!</strong></p>
+
+<h2>
+<a name="testing" class="anchor" href="#testing"><span class="octicon octicon-link"></span></a>Testing</h2>
+
+<p>If you are using cleanroom in your DSLs, you will likely want to test a particular DSL method is exposed. Cleanroom packages some RSpec matchers for your convienence:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="c1"># spec/spec_helper.rb</span>
+<span class="nb">require</span> <span class="s1">'rspec'</span>
+<span class="nb">require</span> <span class="s1">'cleanroom/rspec'</span>
+</pre></div>
+
+<p>This will define the following matchers:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="c1"># Check against an instance</span>
+<span class="n">expect</span><span class="p">(</span><span class="ss">:my_method</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">be_an_exposed_method_on</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+
+<span class="c1"># Check against a class</span>
+<span class="n">expect</span><span class="p">(</span><span class="ss">:my_method</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">be_an_exposed_method_on</span><span class="p">(</span><span class="n">klass</span><span class="p">)</span>
+
+<span class="c1"># Check against an instance</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">have_exposed_method</span><span class="p">(</span><span class="ss">:my_method</span><span class="p">)</span>
+
+<span class="c1"># Check against a class</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">klass</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">have_exposed_method</span><span class="p">(</span><span class="ss">:my_method</span><span class="p">)</span>
+</pre></div>
+
+<h2>
+<a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<ol>
+<li>Fork the project</li>
+<li>Write tests</li>
+<li>Run tests</li>
+<li>Create a new Pull Request</li>
+</ol><h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<div class="highlight highlight-text"><pre>Copyright 2014 Seth Vargo &lt;sethvargo@gmail.com&gt;
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+</pre></div>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
